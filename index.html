@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FitTrack</title>
+<script>try{var a=JSON.parse(localStorage.getItem("fittrack_prefs"));if(a){if(/^[a-z]+$/.test(a.theme))document.documentElement.dataset.theme=a.theme;if(/^[a-z]+$/.test(a.accent))document.documentElement.dataset.accent=a.accent}}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+<div id="gate" aria-live="polite"></div>
+<nav class="side" id="side" aria-label="Navegação principal"></nav>
+<div class="shell"><header class="top" id="top"></header>
+<div id="banner"></div>
+<main id="main"></main></div>
+<nav class="bn" id="bn" aria-label="Navegação"></nav>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+<div id="toast" role="status"></div>
+<!-- supabase-js: versão FIXA via CDN (UMD, expõe window.supabase). Para não depender de CDN, baixe esse mesmo arquivo para
+     js/vendor/supabase.js e troque o src (ver README, "supabase-js"). Sem ele o site continua funcionando no modo demonstração. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<!-- Scripts clássicos (sem build): a ordem importa. Funcionam em servidor estático e também abrindo index.html direto. -->
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/components/icons.js"></script>
+<script src="js/data.js"></script>
+<script src="js/migrate.js"></script>
+<script src="js/services/supabase.js"></script>
+<script src="js/services/auth.js"></script>
+<script src="js/services/changes.js"></script>
+<script src="js/services/dataRepository.js"></script>
+<script src="js/store.js"></script>
+<script src="js/services/legacy.js"></script>
+<script src="js/state.js"></script>
+<script src="js/events.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/charts.js"></script>
+<script src="js/components/datePicker.js"></script>
+<script src="js/components/navigation.js"></script>
+<script src="js/components/ui.js"></script>
+<script src="js/actions/diet.js"></script>
+<script src="js/actions/workout.js"></script>
+<script src="js/actions/hydration.js"></script>
+<script src="js/actions/profile.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/views/landing.js"></script>
+<script src="js/views/account.js"></script>
+<script src="js/boot.js"></script>
+<script src="js/views/dashboard.js"></script>
+<script src="js/views/workouts.js"></script>
+<script src="js/views/diet.js"></script>
+<script src="js/views/progress.js"></script>
+<script src="js/views/hydration.js"></script>
+<script src="js/views/settings.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

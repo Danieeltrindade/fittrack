@@ -1,0 +1,66 @@
+/* auth.css — tela inicial pública, login/cadastro, indicador da conta, faixas de aviso, estados de carregamento. */
+/* enquanto a tela pública está aberta, o app fica escondido */
+body[data-gate] .side,body[data-gate] .shell,body[data-gate] .bn,body[data-gate] .ov{display:none!important}
+#gate{display:none}
+body[data-gate] #gate{display:grid;min-height:100vh;min-height:100dvh;place-items:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.gcard{width:100%;max-width:460px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:32px 28px;display:flex;flex-direction:column;gap:14px}
+[data-theme=light] .gcard{box-shadow:0 1px 2px rgba(9,9,11,.05),0 12px 32px rgba(9,9,11,.06)}
+.gbrand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2em;font-size:13px;margin-bottom:6px}
+.gbrand i{width:28px;height:28px;border-radius:9px;background:var(--acc);color:var(--on-accent);display:grid;place-items:center;flex:none}.gbrand i .ic{width:16px;height:16px}
+.gcard h1{font-size:26px;line-height:1.2;letter-spacing:-.01em}
+.gcard .sub{margin:0;font-size:15px}
+.gform{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.gform .btn,.gact .btn{margin-top:0}
+.gform .btn.w{width:100%}
+.gact{display:flex;flex-direction:column;gap:10px;margin-top:6px}.gact .btn{width:100%}
+.gmsg{min-height:0;font-size:14px;line-height:1.45;margin:0}.gmsg:empty{display:none}
+.gmsg.err{color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent);border:1px solid color-mix(in srgb,var(--bad) 35%,transparent);border-radius:12px;padding:10px 14px}
+.gmsg.ok{color:var(--accent-ink);background:var(--accent-soft);border-radius:12px;padding:10px 14px}
+.glinks{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.glink{background:none;border:0;color:var(--accent-ink);font-weight:600;font-size:14px;padding:10px 4px;min-height:44px;text-align:left}
+.glink:hover{text-decoration:underline}.glink[disabled]{opacity:.5;pointer-events:none}
+.gopts{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.gopt{display:flex;flex-direction:column;gap:4px;text-align:left;border:1px solid var(--line);background:var(--s2);border-radius:16px;padding:16px 18px;min-height:76px;transition:border-color .15s,background .15s,transform .1s}
+.gopt b{font-size:16px}.gopt span{color:var(--mut);font-size:14px;line-height:1.4}
+.gopt:hover{border-color:var(--accent-border);background:var(--hov)}.gopt:active{transform:scale(.99)}
+.gopt.pri{background:var(--acc);border-color:transparent;color:var(--on-accent)}.gopt.pri span{color:inherit;opacity:.85}.gopt.pri:hover{background:var(--accent-hover)}
+.gopt[disabled]{opacity:.55;pointer-events:none}
+.gload{display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 0;color:var(--mut)}
+.spin{display:inline-block;width:18px;height:18px;border-radius:50%;border:2px solid var(--track);border-top-color:var(--acc);animation:spin .7s linear infinite;flex:none}
+.gload .spin{width:30px;height:30px;border-width:3px}
+.btn .spin{border-color:color-mix(in srgb,currentColor 25%,transparent);border-top-color:currentColor}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:spin 1.6s linear infinite!important}}
+.btn[disabled]{opacity:.65;pointer-events:none}
+
+/* topo: indicador da conta */
+.acct{display:inline-flex;align-items:center;gap:8px;color:var(--mut);font-size:13px;max-width:240px}
+.acct span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.tag.demo{background:color-mix(in srgb,var(--info,#3B82F6) 16%,transparent);color:var(--info,#3B82F6)}
+.top{flex-wrap:wrap}
+
+/* faixas de aviso */
+#banner:empty{display:none}
+#banner{max-width:1240px;margin:14px auto 0;padding:0 40px;display:flex;flex-direction:column;gap:10px}
+.nb{display:flex;align-items:center;justify-content:space-between;gap:12px 18px;flex-wrap:wrap;border:1px solid var(--line);background:var(--s2);border-radius:14px;padding:12px 16px;font-size:14px}
+.nb p{margin:0;flex:1 1 280px;color:var(--mut)}.nb p b{color:var(--ink)}
+.nb .row{gap:8px;flex-wrap:wrap}.nb .btn{margin-top:0}
+.nb.demo{border-color:color-mix(in srgb,var(--info,#3B82F6) 40%,transparent)}
+.nb.legacy{border-color:var(--accent-border);background:var(--accent-soft)}
+.nb.warn{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+
+/* gravação em andamento */
+body.busy::before{content:"";position:fixed;left:0;top:0;height:3px;width:100%;z-index:60;background:linear-gradient(90deg,transparent,var(--acc),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:bsy 1s ease-in-out infinite}
+@keyframes bsy{from{background-position:-40% 0}to{background-position:140% 0}}
+body.busy main,body.busy .sheet{cursor:progress}
+#toast.err{border-left-color:var(--bad)}
+
+@media(max-width:767px){
+  .gcard{padding:26px 20px}.gcard h1{font-size:24px}
+  #banner{padding:0 16px}.acct{display:none}
+  .top{flex-wrap:nowrap;gap:8px}.top .tag.demo{display:none}
+  .top .btn.sm{min-height:44px}
+}
+
+.gtech{display:flex;flex-direction:column;gap:8px;align-items:flex-start;font-size:13px}.gtech code{display:block;word-break:break-word;white-space:pre-wrap;color:var(--mut);padding:6px 0}.gdiag{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;width:100%}.gdiag li{padding:8px 12px;border-radius:10px;background:var(--s2);line-height:1.45}.gdiag li.bad{border:1px solid color-mix(in srgb,var(--bad) 40%,transparent)}.gdiag li.ok b{color:var(--accent-ink)}

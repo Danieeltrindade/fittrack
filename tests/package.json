@@ -1,0 +1,15 @@
+{
+  "name": "fittrack-tests",
+  "private": true,
+  "description": "Testes do FitTrack: SQL (RLS) em Postgres real + e2e no navegador com servidor de teste. Não faz parte do site publicado.",
+  "scripts": {
+    "db": "./run-pg.sh fittrack_test",
+    "test:sql": "./run-pg.sh fittrack_test && PGHOST=127.0.0.1 PGPORT=54329 PGUSER=postgres psql -q -t -A -d fittrack_test -f sql/10_rls_tests.sql",
+    "test:e2e": "./run-e2e.sh",
+    "test": "npm run test:sql && npm run test:e2e",
+    "check:secrets": "node ../scripts/check-secrets.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.40.0"
+  }
+}

@@ -1,0 +1,26 @@
+# Segredos e arquivos locais — NUNCA versionar
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.secret
+secrets.*
+*service_role*
+sb_secret_*
+supabase/.temp/
+supabase/.branches/
+.supabase/
+# Dependências e artefatos de teste
+node_modules/
+tests/node_modules/
+tests/.tmp/
+*.log
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+# Dados pessoais exportados (backups .json do app)
+fittrack-backup-*.json
+fittrack-dados-antigos-*.json

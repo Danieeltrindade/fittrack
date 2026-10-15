@@ -1,0 +1,11 @@
+/* Base: reset, tipografia global, foco e animações de entrada */
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.55 Inter,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.ic{width:20px;height:20px;flex:none}
+@keyframes up{from{opacity:0;transform:translateY(10px)}}@keyframes grow{from{transform:scaleX(0)}}
+main.in .pg>*{animation:up .45s cubic-bezier(.2,.7,.2,1) both}main.in .pg>*:nth-child(2){animation-delay:.05s}main.in .pg>*:nth-child(3){animation-delay:.1s}main.in .pg>*:nth-child(4){animation-delay:.15s}main.in .pg>*:nth-child(5){animation-delay:.2s}
+main.in .bar i{animation:grow .9s cubic-bezier(.2,.7,.2,1) .2s both}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}

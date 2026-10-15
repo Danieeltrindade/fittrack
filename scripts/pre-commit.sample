@@ -1,0 +1,3 @@
+#!/bin/sh
+# Opcional: copie para .git/hooks/pre-commit (e dê permissão de execução) para barrar commits com segredos.
+node scripts/check-secrets.js || { echo "Commit bloqueado: remova os segredos acima."; exit 1; }

@@ -1,0 +1,17 @@
+/* Responsividade (carregado por último para sobrescrever layout e componentes) */
+@media(min-width:640px){.strip{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){.row2{grid-template-columns:1.05fr 1fr}.wsum{grid-template-columns:280px 1fr}.two{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr 340px}}
+@media(min-width:1100px){.strip{grid-template-columns:repeat(4,1fr)}.strip .m:nth-child(odd){padding-left:28px;border-left:1px solid var(--line)}.strip .m:first-child{padding-left:0;border-left:0}}
+@media(min-width:768px) and (max-width:1099px){.side{width:76px;align-items:center;padding-inline:10px}.lb,.logo span{display:none}.logo{padding:0 0 26px}.ni{justify-content:center;padding:13px}.ni.on::before{left:-10px}.shell{margin-left:76px}.pg,.top{padding-inline:28px}}
+@media(max-width:767px){
+.side{display:none}.shell{margin:0}.top{padding:14px 16px 0}.top .date{display:none}.mlogo{display:flex}
+.pg{padding:18px 16px calc(104px + env(safe-area-inset-bottom,0px));gap:34px}
+h1{font-size:30px}.panel{padding:20px;border-radius:18px}.num{font-size:28px}.strip{gap:26px 0}.strip .m{padding:0 16px}.strip .m:nth-child(odd){padding-left:0;padding-right:16px}
+.bn{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;background:var(--navbg);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
+.bn .ni{flex-direction:column;gap:4px;padding:8px 2px;font-size:11px;justify-content:center;align-items:center;text-align:center;border-radius:12px;min-height:52px}.bn .ni.on::before{display:none}
+.hd>.btn,.hact,.hact .btn{width:100%}.hd .chips{width:100%}
+.ov{align-items:flex-end;padding:0}.sheet{border-radius:22px 22px 0 0;max-width:none;padding:22px 16px calc(22px + env(safe-area-inset-bottom,0px))}
+.ib,.av{width:44px;height:44px}.chip,.btn.sm{min-height:44px}.xr{grid-template-columns:1fr 70px 44px;gap:8px}.sr{grid-template-columns:28px 84px 1fr 1fr 44px;gap:6px}.sr .mut{font-size:12px}.prev .pv b{font-size:15px}.sr.hd{font-size:11px}#toast{bottom:92px}.wk h2{font-size:26px}}
+@media(min-width:640px){.hq{grid-template-columns:repeat(4,1fr)}.hstats{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:900px){.hgrid{grid-template-columns:minmax(300px,.8fr) 1.2fr}.hstats{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1180px){.hstats{grid-template-columns:repeat(4,1fr)}}
