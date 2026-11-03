@@ -1,4 +1,4 @@
-/* migrate.js — normaliza dados de qualquer versão anterior para o formato atual (schemaVersion 2).
+/* migrate.js — normaliza dados de qualquer versão anterior para o formato atual (schemaVersion 3).
    Idempotente: rodar de novo sobre dados já migrados não muda nada. Devolve true se alterou algo. */
 function migrate(o) {
   let ch = false;
@@ -32,6 +32,18 @@ function migrate(o) {
     del(f, 'quantity');
     if (typeof f.carbs !== 'number') set(f, 'carbs', 0);
     if (typeof f.fat !== 'number') set(f, 'fat', 0);
+  }
+
+  // v2 → v3: objetivo, peso desejado, ajuste calórico, metas por objetivo, refeições salvas. Só ACRESCENTA campos com padrão neutro:
+  // nenhuma meta já cadastrada é alterada.
+  if (!Array.isArray(o.savedMeals)) { o.savedMeals = []; ch = true; }
+  if (!GOAL_TYPES.some(g => g[0] === p.goalType)) set(p, 'goalType', 'maintain');
+  if (!Number.isFinite(p.calorieAdjust)) set(p, 'calorieAdjust', 0);
+  if (!(p.targetWeight > 0) && 'targetWeight' in p) del(p, 'targetWeight');
+  if (!p.goalPresets || typeof p.goalPresets !== 'object' || Array.isArray(p.goalPresets)) { p.goalPresets = {}; ch = true; }
+  for (const w of o.workouts || []) for (const e of w.exercises || []) {
+    if (e.description === null || e.description === '') del(e, 'description');
+    if (e.muscleGroup === null || e.muscleGroup === '') del(e, 'muscleGroup');
   }
 
   if (o.schemaVersion !== SCHEMA_VERSION) set(o, 'schemaVersion', SCHEMA_VERSION);

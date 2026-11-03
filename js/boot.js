@@ -8,7 +8,7 @@ const Boot = {
   wipeMemory() {
     Store.reset('none'); Boot.uid = null; Boot.email = '';
     Legacy.info = null; Legacy.dismissed = false; CloudRepo.legacyHashes = [];
-    PENDING = null;
+    PENDING = null; try { Photos.forget(); PhotoUI.drop(); } catch (e) { }
     Object.keys(S).forEach(k => delete S[k]);
     Object.assign(S, { view: 'inicio', range: 90, ex: '', open: { cafe: true, almoco: true }, libq: '' });
     S.date = S.tdate = S.hdate = iso(new Date());

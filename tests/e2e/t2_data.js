@@ -13,7 +13,7 @@ const sql = q => T.sql(q);
   await p.fill('#cp', '75.5'); await p.fill('#cc', '2800'); await p.fill('#cr', '160'); await p.fill('#cb', '350'); await p.fill('#cf', '70'); await p.fill('#cw', '3500');
   await click(p, 'savecfg'); await waitIdle(p);
   const pr = (await sql(`select weight::float w, calorie_goal c, protein_goal pr, carb_goal cb, fat_goal f, water_goal_ml wa from public.profiles where user_id='${uid}'`))[0];
-  ok('T9 metas gravadas no banco (meta ÚNICA de carboidratos, gordura, água)', JSON.stringify(pr) === JSON.stringify({ w: 75.5, c: 2800, pr: 160, cb: 350, f: 70, wa: 3500 }), pr);
+  ok('T9 metas gravadas no banco (meta ÚNICA de carboidratos, gordura, água)', JSON.stringify(pr) === JSON.stringify({ w: 75.5, c: 2800, pr: 160, cb: 350, f: 70, wa: 3500 }), [pr, uid]);
   ok('T9 peso do dia entra no histórico de peso', await q1(`select count(*) from public.weight_history where user_id='${uid}' and weight=75.5 and entry_date=current_date`) === 1);
   await p.reload(); await p.waitForTimeout(600); await nav(p, 'config');
   ok('T9 metas continuam após recarregar', await p.inputValue('#cc') === '2800' && await p.inputValue('#cb') === '350' && await p.inputValue('#cw') === '3500');
@@ -55,30 +55,30 @@ const sql = q => T.sql(q);
   ok('T11 excluir sessão remove sessão e séries', await q1(`select count(*) from public.workout_sessions where user_id='${uid}'`) === 0 && await q1(`select count(*) from public.session_sets where user_id='${uid}'`) === 0);
 
   // ---- T12/T13 biblioteca e macros proporcionais
-  await nav(p, 'dieta'); await click(p, 'libnew');
+  await nav(p, 'dieta'); await click(p, 'dtab', 'alimentos'); await click(p, 'libnew');
   await p.fill('#ln', 'Whey Teste'); await p.fill('#lp', '30'); await p.fill('#lk', '120'); await p.fill('#lpr', '24'); await p.fill('#lc', '3'); await p.fill('#lg', '2'); await click(p, 'libsave'); await waitIdle(p);
   const food = (await sql(`select name, portion::float p, unit, calories::float k, protein::float pr, carbs::float c, fat::float g from public.foods where user_id='${uid}'`))[0];
   ok('T12 alimento da biblioteca gravado (porção + unidade + macros)', food && food.name === 'Whey Teste' && food.p === 30 && food.unit === 'g' && food.k === 120 && food.pr === 24, food);
-  await click(p, 'meal', 'cafe'); await p.fill('#la', '45');
+  await click(p, 'dtab', 'dia'); await click(p, 'meal', 'cafe'); await p.fill('#la', '45');
   ok('T13 prévia proporcional: 45 g → 180 kcal, 36 g proteína', /180/.test(await txt(p, '#lprev')) && /36/.test(await txt(p, '#lprev')), await txt(p, '#lprev'));
   await click(p, 'saveL'); await waitIdle(p);
   const mi = (await sql(`select i.name, i.quantity, i.calories::float k, i.protein::float pr, i.carbs::float c, i.fat::float g, i.food_id is not null linked, m.meal_type, m.calories::float mk from public.meal_items i join public.meals m on m.id=i.meal_id and m.user_id=i.user_id where i.user_id='${uid}'`))[0];
   ok('T13 refeição gravada com macros proporcionais calculados', mi && mi.k === 180 && mi.pr === 36 && mi.c === 4.5 && mi.g === 3 && mi.quantity === '45 g' && mi.meal_type === 'cafe' && mi.mk === 180 && mi.linked, mi);
   // editar a biblioteca não altera refeição antiga
-  await p.locator('.lib [data-act=libedit]').first().click(); await p.fill('#lk', '999'); await click(p, 'libsave'); await waitIdle(p);
+  await click(p, 'dtab', 'alimentos'); await p.locator('.lib [data-act=libedit]').first().click(); await p.fill('#lk', '999'); await click(p, 'libsave'); await waitIdle(p);
   ok('T13 editar o alimento na biblioteca NÃO altera a refeição já registrada', await q1(`select calories::float from public.meal_items where user_id='${uid}'`) === 180 && await q1(`select calories::float from public.foods where user_id='${uid}'`) === 999);
   // item manual + salvar na biblioteca
-  await click(p, 'meal', 'almoco'); await click(p, 'mmode', 'man');
+  await click(p, 'dtab', 'dia'); await click(p, 'meal', 'almoco'); await click(p, 'mmode', 'man');
   await p.fill('#mn', 'Arroz manual'); await p.fill('#mq', '150 g'); await p.fill('#mk', '195'); await p.fill('#mp', '4'); await p.fill('#mb', '42'); await p.fill('#mg', '0'); await p.check('#ms'); await click(p, 'saveM'); await waitIdle(p);
   ok('T13 item manual gravado e também enviado à biblioteca', await q1(`select count(*) from public.meal_items where user_id='${uid}' and name='Arroz manual' and calories=195`) === 1 && await q1(`select count(*) from public.foods where user_id='${uid}' and name='Arroz manual' and portion=150 and unit='g'`) === 1);
   // histórico nutricional + dashboard
   await nav(p, 'inicio');
   ok('T14 dashboard soma as refeições do dia (375 kcal, 40 g prot.)', /375/.test(await txt(p, 'main')) && /40/.test(await txt(p, '.strip')), (await txt(p, '.strip')).replace(/\n+/g, ' '));
   // remover item da refeição
-  await nav(p, 'dieta'); await p.locator('[data-act=rm]').first().click(); await waitIdle(p);
+  await nav(p, 'dieta'); await click(p, 'dtab', 'dia'); await p.locator('[data-act=rm]').first().click(); await waitIdle(p);
   ok('T13 remover item atualiza refeição no banco (refeição vazia some)', await q1(`select count(*) from public.meal_items where user_id='${uid}'`) === 1 && await q1(`select count(*) from public.meals where user_id='${uid}'`) === 1);
   // apagar alimento da biblioteca preserva refeição
-  await p.locator('.lib [data-act=libdel]').first().click(); await click(p, 'libdelok'); await waitIdle(p);
+  await click(p, 'dtab', 'alimentos'); await p.locator('.lib [data-act=libdel]').first().click(); await click(p, 'libdelok'); await waitIdle(p);
   ok('T12 excluir da biblioteca não apaga refeições já registradas', await q1(`select count(*) from public.foods where user_id='${uid}'`) === 1 && await q1(`select count(*) from public.meal_items where user_id='${uid}'`) === 1);
 
   // ---- T15 peso

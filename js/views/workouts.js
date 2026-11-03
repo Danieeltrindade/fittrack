@@ -13,7 +13,7 @@ function vTreinos() {
   const hs = S.hist.filter(h => h.ex === S.ex), ds = [...new Set(hs.map(h => h.data))].sort().reverse().slice(0, 6);
   return `<div class="pg">${hdr('Treinos', 'Escolha um treino para começar ou revise o histórico.', `<div class="hact"><button class="btn" data-act="new">${ic('plus')}Novo treino</button></div>`)}${dateBar('tdate')}${sessionsOfDay()}
 <div class="wgrid">${S.treinos.map(t => `<article class="panel wk"><div class="row"><span class="cap">${esc(wkk(t.nome))}</span>${rowBtns('edit', 'del', t.id, 'Editar treino', 'Excluir treino')}</div><h2>${esc(wt(t.nome))}</h2><p class="exs">${t.ex.map(x => esc(x.n)).join(' · ') || 'Sem exercícios ainda.'}</p><div class="pills"><span>${t.ex.length} exercício${t.ex.length === 1 ? '' : 's'}</span><span>${sum(t.ex, 's')} séries</span>${t.dias.map(d => `<span class="dy">${DIAS[d]}</span>`).join('')}</div><div class="wk-f"><button class="btn" data-act="reg" data-v="${t.id}">${ic('play')}Iniciar treino</button><button class="btn s" data-act="whist" data-v="${t.id}">Histórico</button></div></article>`).join('') || '<div class="empty" style="grid-column:1/-1">Nenhum treino cadastrado. Toque em Novo treino.</div>'}</div>
-<section class="panel"><div class="sec"><h2>Histórico do exercício</h2><select style="max-width:260px" data-chg="ex" aria-label="Exercício">${exNames().map(n => `<option ${n === S.ex ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+<section class="panel"><div class="sec"><h2>Histórico do exercício</h2><div class="chips"><select style="max-width:260px" data-chg="ex" aria-label="Exercício">${exNames().map(n => `<option ${n === S.ex ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>${S.ex ? `<button class="btn s sm" data-act="exedit">${ic('edit')}Editar exercício</button>` : ''}</div></div>
 ${ds.map(d => { const L = hs.filter(h => h.data === d).sort((a, b) => a.serie - b.serie), o = S.sess.find(s => s.data === d && s.exObs && s.exObs[S.ex]); return `<div class="li" style="align-items:flex-start"><div style="flex:none"><p>${dlong(pd(d))}</p>${o ? `<small>“${esc(o.exObs[S.ex])}”</small>` : ''}</div><div style="flex:1;min-width:0;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px 14px;font-size:14px">${L.map(h => `<span style="white-space:nowrap">${fx(h.carga)} kg × ${h.reps}</span>`).join('')}</div></div>`; }).join('') || '<div class="empty">Nenhum registro para este exercício.</div>'}</section>${sessCard()}</div>`;
 }
 
@@ -21,17 +21,18 @@ ${ds.map(d => { const L = hs.filter(h => h.data === d).sort((a, b) => a.serie - 
 function edModal() {
   const d = S.ed;
   modal(`${mTitle(d.id ? 'Editar treino' : 'Novo treino', 14)}<label for="en">Nome do treino</label><input id="en" value="${esc(d.nome)}" placeholder="Ex.: Treino E · Full body"><label style="margin-top:12px">Dias da semana</label><div class="chips">${DIAS.map((x, i) => `<button class="chip ${d.dias.includes(i) ? 'on' : ''}" data-act="day" data-v="${i}">${x}</button>`).join('')}</div>
-${d.ex.map((x, i) => `<div class="exr"><div class="xr"><div><label>Exercício</label><input name="n" value="${esc(x.n)}" placeholder="Nome do exercício"></div><div><label>Séries</label><input name="s" type="number" inputmode="numeric" min="1" value="${x.s}"></div><button class="ib" data-act="delex" data-v="${i}" aria-label="Remover exercício">${ic('trash')}</button></div></div>`).join('')}
+<datalist id="mgs">${MUSCLE_GROUPS.map(g => `<option value="${g}">`).join('')}</datalist>
+${d.ex.map((x, i) => `<div class="exr" data-id="${x.id || ''}"><div class="xr"><div><label>Exercício</label><input name="n" maxlength="120" value="${esc(x.n)}" placeholder="Nome do exercício"></div><div><label>Séries</label><input name="s" type="number" inputmode="numeric" min="1" value="${x.s}"></div><button class="ib" data-act="delex" data-v="${i}" aria-label="Remover exercício">${ic('trash')}</button></div><details class="exd" ${x.d || x.g ? 'open' : ''}><summary>Grupo muscular e descrição</summary><div class="f" style="margin:8px 0 0"><div><label>Grupo muscular</label><input name="g" list="mgs" maxlength="60" value="${esc(x.g || '')}" placeholder="Ex.: Peito"></div><div class="w"><label>Descrição</label><textarea name="d" rows="2" maxlength="500" placeholder="Dicas de execução, observações…">${esc(x.d || '')}</textarea></div></div></details></div>`).join('')}
 <button class="btn s sm" style="margin-top:14px" data-act="addex">${ic('plus')}Adicionar exercício</button>${foot('saveT', 'Salvar treino')}`);
 }
 function readEd() {
   const m = $('#sheet'); S.ed.nome = m.querySelector('#en').value;
-  S.ed.ex = [...m.querySelectorAll('.exr')].map(r => ({ n: r.querySelector('[name=n]').value, s: Math.max(1, parseInt(r.querySelector('[name=s]').value) || 1) }));
+  S.ed.ex = [...m.querySelectorAll('.exr')].map(r => ({ id: r.dataset.id || '', n: r.querySelector('[name=n]').value, s: Math.max(1, parseInt(r.querySelector('[name=s]').value) || 1), g: r.querySelector('[name=g]').value.trim(), d: r.querySelector('[name=d]').value.trim() }));
 }
-on('new', () => { S.ed = { id: 0, nome: '', dias: [], ex: [{ n: '', s: 3 }] }; edModal(); });
-on('edit', (b, v) => { S.ed = JSON.parse(JSON.stringify(S.treinos.find(t => t.id === v))); S.ed.ex = S.ed.ex.map(x => ({ n: x.n, s: x.s })); edModal(); });
+on('new', () => { S.ed = { id: 0, nome: '', dias: [], ex: [{ id: '', n: '', s: 3 }] }; edModal(); });
+on('edit', (b, v) => { S.ed = JSON.parse(JSON.stringify(S.treinos.find(t => t.id === v))); S.ed.ex = S.ed.ex.map(x => ({ id: x.id, n: x.n, s: x.s, g: x.g || '', d: x.d || '' })); edModal(); });
 on('day', (b, v) => { readEd(); const d = S.ed.dias, i = d.indexOf(+v); i < 0 ? d.push(+v) : d.splice(i, 1); edModal(); });
-on('addex', () => { readEd(); S.ed.ex.push({ n: '', s: 3 }); edModal(); });
+on('addex', () => { readEd(); S.ed.ex.push({ id: '', n: '', s: 3 }); edModal(); });
 on('delex', (b, v) => { readEd(); S.ed.ex.splice(+v, 1); edModal(); });
 on('saveT', async () => {
   readEd();
@@ -112,3 +113,25 @@ on('sall', () => { S.sessAll = !S.sessAll; render(); });
 on('whist', (b, v) => { S.sf = v; S.sessAll = false; render(); const e = document.getElementById('sessoes'); if (e && e.scrollIntoView) e.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 on('wclear', () => { S.sf = null; render(); });
 onChange('ex', (el, v) => { S.ex = v; render(); });
+
+/* ---------- editar um exercício (nome, descrição, grupo muscular, excluir) — vale para todos os treinos que o contêm ---------- */
+const MUSCLE_GROUPS = ['Peito', 'Costas', 'Ombros', 'Bíceps', 'Tríceps', 'Antebraço', 'Quadríceps', 'Posterior de coxa', 'Glúteos', 'Panturrilha', 'Abdômen', 'Lombar', 'Corpo inteiro'];
+const exInfo = name => { const L = DB.workouts.flatMap(w => w.exercises.filter(e => e.name === name).map(e => ({ w, e }))); return { L, e: (L[0] || {}).e || {}, n: L.length }; };
+on('exedit', () => {
+  const name = S.ex, x = exInfo(name); if (!x.n) { toast('Exercício não encontrado nos treinos'); return; }
+  S.exo = name;
+  modal(`${mTitle('Editar exercício', 6)}<p class="sub" style="margin-bottom:14px">Presente em ${x.n} treino${x.n === 1 ? '' : 's'}. Ao corrigir o nome, <b style="color:var(--ink)">o histórico de cargas e repetições é mantido</b> e passa a aparecer com o nome novo.</p>
+<datalist id="mgs">${MUSCLE_GROUPS.map(g => `<option value="${g}">`).join('')}</datalist>
+<div class="f"><div class="w"><label for="xen">Nome</label><input id="xen" maxlength="120" value="${esc(name)}"></div><div class="w"><label for="xeg">Grupo muscular</label><input id="xeg" list="mgs" maxlength="60" value="${esc(x.e.muscleGroup || '')}" placeholder="Ex.: Peito"></div><div class="w"><label for="xed">Descrição</label><textarea id="xed" rows="3" maxlength="500" placeholder="Dicas de execução, observações…">${esc(x.e.description || '')}</textarea></div></div>
+<div class="row" style="margin-top:20px;gap:10px"><button class="btn d" data-act="exdel">${ic('trash')}Excluir</button><button class="btn s" style="flex:1" data-act="close">Cancelar</button><button class="btn" style="flex:1" data-act="exsave">Salvar</button></div>`);
+});
+on('exsave', async () => {
+  const n = $('#xen').value.trim(); if (!n) { toast('Informe o nome do exercício'); return; }
+  const old = S.exo;
+  if (n !== old && exNames().includes(n) && !confirm_dup(n)) return;
+  if (!await WorkoutActions.editExercise(old, { name: n, muscleGroup: $('#xeg').value.trim(), description: $('#xed').value.trim() })) return;
+  S.ex = n; closeModal(); toast(n === old ? 'Exercício atualizado' : 'Exercício renomeado — histórico preservado');
+});
+const confirm_dup = n => { toast(`Já existe um exercício chamado “${n}”. Escolha outro nome.`); return false; };
+on('exdel', () => confirmM('Excluir exercício?', `“${esc(S.exo)}” sai de todos os treinos. O histórico de cargas e repetições já registrado é mantido.`, 'exdelok'));
+on('exdelok', async () => { if (!await WorkoutActions.deleteExercise(S.exo)) return; closeModal(); toast('Exercício excluído dos treinos'); });

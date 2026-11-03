@@ -11,6 +11,8 @@ function render() {
   m.innerHTML = VIEWS[S.view]();
   document.title = 'FitTrack · ' + NAV.find(n => n[0] === S.view)[1];
   if (S.view === 'hidratacao') hydStart();
+  if (S.view === 'config') updateSuggest();
+  if (typeof Photos !== 'undefined') Photos.hydrate(document);
 }
 function go(v) {
   S.view = v; S.anim = true;

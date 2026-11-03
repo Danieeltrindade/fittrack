@@ -1,19 +1,24 @@
 /* data.js — constantes do domínio, estrutura vazia dos dados, dados iniciais e dados de demonstração. */
 const KEY = 'fittrack_data';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 const NAV = [['inicio', 'Início'], ['treinos', 'Treinos'], ['dieta', 'Dieta'], ['progresso', 'Progresso'], ['hidratacao', 'Hidratação'], ['config', 'Configurações']];
 const MEALS = [['cafe', 'Café da manhã'], ['almoco', 'Almoço'], ['lanche', 'Lanche'], ['jantar', 'Jantar'], ['outras', 'Outras']];
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const RG = [[7, '7 dias'], [30, '30 dias'], [90, '3 meses'], [0, 'Todo o histórico']];
 const THEMES = [['dark', 'Escuro', 'moon'], ['light', 'Claro', 'sun']];
 const ACCENTS = [['green', 'Verde'], ['blue', 'Azul'], ['cyan', 'Ciano'], ['red', 'Vermelho'], ['yellow', 'Amarelo'], ['purple', 'Roxo'], ['pink', 'Rosa']];
+/* Categorias das refeições salvas (modelos) e em qual refeição do diário cada uma cai por padrão */
+const MEAL_CATS = [['cafe', 'Café da manhã'], ['almoco', 'Almoço'], ['lanche', 'Lanche'], ['pre', 'Pré-treino'], ['pos', 'Pós-treino'], ['jantar', 'Jantar'], ['ceia', 'Ceia'], ['outras', 'Outras']];
+const CAT_SLOT = { cafe: 'cafe', almoco: 'almoco', lanche: 'lanche', pre: 'lanche', pos: 'lanche', jantar: 'jantar', ceia: 'outras', outras: 'outras' };
+/* Objetivo principal: define como o app interpreta ultrapassar uma meta (ver goals.js) */
+const GOAL_TYPES = [['lose', 'Emagrecimento'], ['maintain', 'Manutenção'], ['gain', 'Ganho de massa']];
 const WATER_QUICK = [200, 300, 500, 700];
 const DEFAULT_WATER_ML = 3000;
 
 const emptyData = () => ({
   schemaVersion: SCHEMA_VERSION,
   profile: { weight: 0, calorieGoal: 0, proteinGoal: 0 },
-  workouts: [], workoutHistory: [], foods: [], meals: [], weightHistory: [], hydration: []
+  workouts: [], workoutHistory: [], foods: [], meals: [], weightHistory: [], hydration: [], savedMeals: []
 });
 
 /* Dados de demonstração (fictícios; datas relativas a hoje). Botão "Restaurar dados de exemplo". */
@@ -22,7 +27,9 @@ function defaultData() {
   // alimento da biblioteca: porção + unidade + valores da porção
   const L = (name, portion, unit, calories, protein, carbs, fat) => ({ id: uid(), name, portion, unit, calories, protein, carbs, fat });
   const W = (name, days, ex) => ({ id: uid(), name, days, exercises: ex.map(([n, s]) => ({ id: uid(), name: n, sets: s })) });
-  d.profile = { weight: 78.4, calorieGoal: 2900, proteinGoal: 160, fatGoal: 80, carbGoal: 380, waterGoalMl: 3000 };
+  d.profile = { weight: 78.4, calorieGoal: 2900, proteinGoal: 160, fatGoal: 80, carbGoal: 380, waterGoalMl: 3000,
+    goalType: 'gain', targetWeight: 82, calorieAdjust: 300,
+    goalPresets: { lose: { cal: 2300, prot: 170, carb: 230, fat: 70 }, maintain: { cal: 2600, prot: 150, carb: 320, fat: 75 }, gain: { cal: 2900, prot: 160, carb: 380, fat: 80 } } };
   // [nome, séries, repsDoHistórico, cargaFinalDoHistórico] — reps/carga só geram o histórico fictício
   const plan = [
     ['Treino A · Peito e tríceps', [1], [['Supino reto', 4, 8, 70], ['Supino inclinado', 3, 10, 26], ['Crucifixo', 3, 12, 16], ['Tríceps corda', 3, 12, 30]]],
@@ -65,5 +72,11 @@ function defaultData() {
     const n = i ? 4 + (i % 3) : 2, ml = [300, 500, 500, 300, 700, 200];
     for (let j = 0; j < n; j++) d.hydration.push({ id: uid(), date: iso(ago(i)), time: String(8 + j * 2).padStart(2, '0') + ':' + (j % 2 ? '30' : '00'), amount: ml[(i + j) % ml.length] });
   }
+  // refeições salvas (fictícias): itens com quantidade e valores calculados a partir da biblioteca de exemplo
+  const lib = n => d.foods.find(f => f.name === n), SI = (n, amt) => { const f = lib(n), k = f.portion > 0 ? amt / f.portion : 0; return { id: uid(), foodId: f.id, name: f.name, amount: amt, unit: f.unit, calories: r1(f.calories * k), protein: r1(f.protein * k), carbs: r1((f.carbs || 0) * k), fat: r1((f.fat || 0) * k) }; };
+  d.savedMeals = [
+    { id: uid(), name: 'Almoço padrão', category: 'almoco', favorite: true, items: [SI('Arroz branco', 150), SI('Frango grelhado', 150)] },
+    { id: uid(), name: 'Pós-treino rápido', category: 'pos', favorite: false, items: [SI('Whey protein', 30)] }
+  ];
   return d;
 }

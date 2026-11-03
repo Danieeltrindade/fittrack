@@ -79,11 +79,14 @@ const Store = {
     if (this.mode === 'demo') return this.restoreDemo();
     const ep = this.epoch; this._busy(1);
     try {
+      const refs = [...Photos.usedRefs(DB)];
       await CloudRepo.wipe();
       if (ep !== this.epoch) return false;
-      DB = carryApp(emptyData()); CloudRepo.legacyHashes = []; render(); return true;
+      DB = carryApp(emptyData()); CloudRepo.legacyHashes = []; render();
+      await Photos.release(refs, DB);          // fotos da conta saem do armazenamento junto com os dados
+      return true;
     } catch (e) { if (ep === this.epoch) this.fail(e); return false; }
     finally { this._busy(-1); }
   },
-  restoreDemo() { if (this.mode !== 'demo') return false; DB = DemoRepo.reset(); render(); return true; }
+  restoreDemo() { if (this.mode !== 'demo') return false; DB = DemoRepo.reset(); Photos.clearDemo(); Photos.forget(); render(); return true; }
 };

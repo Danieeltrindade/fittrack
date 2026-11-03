@@ -23,3 +23,28 @@ begin
   execute 'reset role';
   return jsonb_build_object('data', r);
 end $$;
+
+-- Storage de teste: executa insert/select/delete em storage.objects COMO o usuário (RLS real das políticas da migração 4)
+create function stub.st(p_uid uuid, p_op text, p_bucket text, p_names jsonb) returns jsonb
+language plpgsql as $$
+declare r jsonb;
+begin
+  perform set_config('request.jwt.claim.sub', p_uid::text, true);
+  execute 'set local role authenticated';
+  begin
+    if p_op = 'insert' then
+      insert into storage.objects (bucket_id, name) select p_bucket, jsonb_array_elements_text(p_names); r := '[]'::jsonb;
+    elsif p_op = 'exists' then
+      select coalesce(jsonb_agg(o.name), '[]') into r from storage.objects o where o.bucket_id = p_bucket and o.name in (select jsonb_array_elements_text(p_names));
+    elsif p_op = 'delete' then
+      with d as (delete from storage.objects o where o.bucket_id = p_bucket and o.name in (select jsonb_array_elements_text(p_names)) returning o.name) select coalesce(jsonb_agg(name), '[]') into r from d;
+    elsif p_op = 'list' then
+      select coalesce(jsonb_agg(o.name), '[]') into r from storage.objects o where o.bucket_id = p_bucket and (storage.foldername(o.name))[1] = (p_names ->> 0);
+    end if;
+  exception when others then
+    execute 'reset role';
+    return jsonb_build_object('__error', jsonb_build_object('code', sqlstate, 'message', sqlerrm));
+  end;
+  execute 'reset role';
+  return jsonb_build_object('data', r);
+end $$;
