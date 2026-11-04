@@ -10,7 +10,7 @@ function render() {
   const m = $('#main'); m.className = S.anim ? 'in' : ''; S.anim = false;
   m.innerHTML = VIEWS[S.view]();
   document.title = 'FitTrack · ' + NAV.find(n => n[0] === S.view)[1];
-  if (S.view === 'hidratacao') hydStart();
+  if (S.view === 'hidratacao' || S.view === 'inicio') hydStart();   // garrafa: página Hidratação e cartão do Início
   if (S.view === 'config') updateSuggest();
   if (typeof Photos !== 'undefined') Photos.hydrate(document);
 }

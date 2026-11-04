@@ -1,0 +1,18 @@
+/* Resumo da semana (Início): 4 nutrientes lado a lado em % da meta. Usa as cores --c-cal/prot/carb/fat dos temas. */
+.wkbox{min-width:0}
+.wkt{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px}
+.wkt>div{background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:9px 12px;min-width:0}
+.wkt b{display:block;font-size:18px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.25}.wkt b small{font-size:11.5px;color:var(--mut);font-weight:500}
+.wkt span{font-size:12px;color:var(--mut)}.wkt span i{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px;background:var(--nc)}
+.wkt .k-cal{--nc:var(--c-cal)}.wkt .k-prot{--nc:var(--c-prot)}.wkt .k-fat{--nc:var(--c-fat)}.wkt .k-carb{--nc:var(--c-carb)}
+.wkc{display:block;width:100%;height:auto;overflow:visible}.wkc text{font-family:inherit}.wkc .wkd{cursor:pointer;outline:none}.wkc .wkd:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wkl{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--mut);margin-top:8px}.wkl i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}
+.wkdt{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px;background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px}
+.wkdt div{display:flex;flex-direction:column;gap:1px;font-size:12px;color:var(--mut);min-width:0}.wkdt b{font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.wkdt em{font-style:normal;font-weight:600;color:var(--nc);font-variant-numeric:tabular-nums}.wkdt span i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;background:var(--nc)}
+.wkdt .k-cal{--nc:var(--c-cal)}.wkdt .k-prot{--nc:var(--c-prot)}.wkdt .k-fat{--nc:var(--c-fat)}.wkdt .k-carb{--nc:var(--c-carb)}
+/* cartão de hidratação do Início: garrafa pequena à direita, barra mantida */
+.hydc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:stretch}.hydc .hl{display:flex;flex-direction:column;gap:14px;justify-content:space-between;min-width:0}
+.hydc .hb{width:68px;align-self:center;flex:none}.hydc .hb .bottle{width:100%}
+@media(max-width:420px){.hydc .hb{width:58px}}
+.wkn{font-size:12.5px;color:var(--mut);margin:0 0 8px}
