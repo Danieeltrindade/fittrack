@@ -12,8 +12,27 @@ const ProfileActions = {
       if (v.fat !== null) d.profile.fatGoal = v.fat;
       if (v.carb !== null) d.profile.carbGoal = v.carb;
       if (v.water !== null) d.profile.waterGoalMl = Math.round(v.water);   // não altera registros antigos de água
+      if (v.goalType) d.profile.goalType = v.goalType;
+      if (v.target !== undefined) { if (v.target > 0) d.profile.targetWeight = v.target; else delete d.profile.targetWeight; }
+      if (v.adjust !== undefined) d.profile.calorieAdjust = Math.round(v.adjust);
       const pe = d.weightHistory.find(x => x.date === td);
       pe ? pe.weight = v.peso : d.weightHistory.push({ id: uid(), date: td, weight: v.peso });
+    });
+  },
+  /* metas guardadas por objetivo (sugestões): NÃO mexem nas metas ativas */
+  savePreset(gt, v) {
+    return Store.update(d => {
+      const pr = { ...(d.profile.goalPresets || {}) }; pr[gt] = { cal: Math.round(v.cal), prot: Math.round(v.prot), carb: Math.round(v.carb), fat: Math.round(v.fat) };
+      d.profile.goalPresets = pr;
+    });
+  },
+  /* só depois da confirmação do usuário: copia as metas do objetivo para as metas ativas */
+  applyPreset(gt) {
+    return Store.update(d => {
+      const p = (d.profile.goalPresets || {})[gt] || {};
+      if (p.cal > 0) d.profile.calorieGoal = p.cal; if (p.prot > 0) d.profile.proteinGoal = p.prot;
+      if (p.carb > 0) d.profile.carbGoal = p.carb; if (p.fat > 0) d.profile.fatGoal = p.fat;
+      d.profile.goalType = gt;
     });
   },
   async savePeso(date, w, editId) {

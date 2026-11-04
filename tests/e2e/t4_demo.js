@@ -12,7 +12,7 @@ const PERSONAL = JSON.stringify({ profile: { weight: 99.9, calorieGoal: 1, prote
   ok('T22 demonstração abre SEM cadastro nem login', !(await gate(p)) && await p.evaluate(() => Store.mode === 'demo'));
   ok('T22 faixa deixa claro: dados fictícios, só neste navegador', /Modo demonstração/.test(await txt(p, '#banner')) && /fictícios/.test(await txt(p, '#banner')));
   ok('T22 demonstração tem dados fictícios completos (treinos, refeições, peso, água)', await p.evaluate(() => DB.workouts.length === 4 && DB.meals.length > 100 && DB.weightHistory.length > 20 && DB.hydration.length > 50 && DB.foods.length === 6 && DB.profile.weight === 78.4));
-  const pages = { inicio: /Calorias|CALORIAS/i, treinos: /Treino A/, dieta: /Meus alimentos/, progresso: /Peso|peso/, hidratacao: /Adicionar água/, config: /Metas e peso/ };
+  const pages = { inicio: /Calorias|CALORIAS/i, treinos: /Treino A/, dieta: /Diário/, progresso: /Peso|peso/, hidratacao: /Adicionar água/, config: /Objetivo e metas/ };
   let bad = [];
   for (const v of Object.keys(pages)) { await nav(p, v); const t = await txt(p, 'main'); if (!pages[v].test(t) || /undefined|NaN|\[object/.test(t)) bad.push(v); }
   ok('T22 todas as páginas funcionam na demonstração (Início, Treinos, Dieta, Progresso, Hidratação, Configurações)', bad.length === 0 && p.errs.length === 0, { bad, errs: p.errs });

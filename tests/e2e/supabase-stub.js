@@ -82,7 +82,21 @@
       if (r.status >= 400) return { data: null, error: { message: r.body && r.body.message, code: r.body && r.body.code, details: '', hint: '' }, status: r.status, statusText: '' };
       return { data: r.body, error: null, status: 200, statusText: 'OK' };
     };
-    return { auth, rpc };
+    // Storage (mesma forma do supabase-js: nunca lança; devolve { data, error })
+    const sreq = async (op, bucket, qs, body, raw) => {
+      let r; try { r = await fetch('/__api/storage/' + op + '?bucket=' + bucket + (qs || ''), { method: 'POST', headers: raw ? { 'content-type': raw.type, authorization: 'Bearer ' + (session && session.access_token) } : { 'content-type': 'application/json', authorization: 'Bearer ' + (session && session.access_token) }, body: raw ? raw.blob : JSON.stringify(body || {}) }); }
+      catch (e) { return { net: e }; }
+      let j = null; try { j = await r.json(); } catch (e) { }
+      return { status: r.status, body: j };
+    };
+    const serr = r => r.net ? { message: 'Failed to fetch', name: 'StorageUnknownError' } : { message: r.body && r.body.message || 'error', statusCode: String(r.body && r.body.statusCode || r.status), status: r.status };
+    const storage = { from: bucket => ({
+      async upload(path, blob, o) { await ready; const r = await sreq('upload', bucket, '&path=' + encodeURIComponent(path), null, { blob, type: (o && o.contentType) || blob.type }); return r.net || r.status >= 400 ? { data: null, error: serr(r) } : { data: r.body, error: null }; },
+      async createSignedUrl(path, secs) { await ready; const r = await sreq('sign', bucket, '', { path }); return r.net || r.status >= 400 ? { data: null, error: serr(r) } : { data: { signedUrl: r.body.signedUrl }, error: null }; },
+      async remove(paths) { await ready; const r = await sreq('remove', bucket, '', { paths }); return r.net || r.status >= 400 ? { data: null, error: serr(r) } : { data: r.body, error: null }; },
+      async list(folder) { await ready; const r = await sreq('list', bucket, '', { folder }); return r.net || r.status >= 400 ? { data: null, error: serr(r) } : { data: r.body, error: null }; }
+    }) };
+    return { auth, rpc, storage };
   }
   window.supabase = { createClient };
 })();

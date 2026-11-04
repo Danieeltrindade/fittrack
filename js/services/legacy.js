@@ -15,7 +15,9 @@ const Legacy = {
       meals: d.meals.length,
       items: new Set(d.meals.flatMap(m => m.foods.map(f => f.id))).size,
       weights: d.weightHistory.length,
-      water: (d.hydration || []).length
+      water: (d.hydration || []).length,
+      smeals: (d.savedMeals || []).length,
+      sitems: (d.savedMeals || []).reduce((a, m) => a + (m.items || []).length, 0)
     };
   },
   async detect() {
@@ -58,7 +60,7 @@ const Legacy = {
     if (ep !== Store.epoch) return { ok: false, step: 'sessão', msg: 'A sessão mudou durante a migração.' };
     // 4) conferência: cada contagem que o banco confirma tem que bater com a do arquivo
     onStep('Conferindo os dados gravados…');
-    const want = Legacy.counts(i.doc), diff = Object.keys(want).filter(k => Number(res[k]) !== want[k]);
+    const want = Legacy.counts(i.doc), diff = Object.keys(want).filter(k => Number(res[k] || 0) !== want[k]);
     if (diff.length) return { ok: false, step: 'conferência', msg: `O banco confirmou menos itens que o esperado (${diff.join(', ')}). A migração NÃO foi marcada como concluída; seus dados originais continuam intactos.` };
     // 5) só agora marca como concluída
     try { await CloudRepo.markLegacy(i.hash, want); CloudRepo.legacyHashes.push(i.hash); }

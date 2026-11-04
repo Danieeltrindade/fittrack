@@ -38,10 +38,12 @@ function todayT() {
 function project() {
   const d = DB, pf = d.profile;
   Object.assign(S, {
-    cfg: { peso: pf.weight, cal: pf.calorieGoal, prot: pf.proteinGoal, fat: pf.fatGoal, carb: pf.carbGoal },
+    cfg: { peso: pf.weight, cal: pf.calorieGoal, prot: pf.proteinGoal, fat: pf.fatGoal, carb: pf.carbGoal, goalType: goalTypeOf(d), target: pf.targetWeight > 0 ? pf.targetWeight : 0, adjust: Number.isFinite(pf.calorieAdjust) ? pf.calorieAdjust : 0, presets: pf.goalPresets && typeof pf.goalPresets === 'object' ? pf.goalPresets : {} },
     treinos: d.workouts.map(w => ({ id: w.id, nome: w.name, dias: w.days || [], ex: w.exercises.map(e => ({ id: e.id, n: e.name, s: e.sets })) })),
-    meals: d.meals.filter(m => m.date === S.date).flatMap(m => m.foods.map(f => ({ id: f.id, t: m.mealType, n: f.name, q: f.quantity, k: f.calories, p: f.protein, c: f.carbs || 0, g: f.fat || 0 }))),
-    lib: d.foods.map(f => ({ id: f.id, n: f.name, portion: f.portion, unit: f.unit, k: f.calories, p: f.protein, c: f.carbs || 0, g: f.fat || 0 })),
+    meals: d.meals.filter(m => m.date === S.date).flatMap(m => m.foods.map(f => ({ id: f.id, t: m.mealType, n: f.name, q: f.quantity, k: f.calories, p: f.protein, c: f.carbs || 0, g: f.fat || 0, ph: f.photo || null }))),
+    lib: d.foods.map(f => ({ id: f.id, n: f.name, portion: f.portion, unit: f.unit, k: f.calories, p: f.protein, c: f.carbs || 0, g: f.fat || 0, ph: f.photo || null })),
+    saved: d.savedMeals || [],
+    mph: Object.fromEntries(d.meals.filter(m => m.date === S.date && m.photo).map(m => [m.mealType, m.photo])),
     hist: d.workoutHistory.flatMap(h => h.exercises.flatMap(e => e.sets.filter(s => s.completed).map(s => ({ data: h.date, ex: e.exerciseName, serie: s.setNumber, carga: s.load, reps: s.reps })))),
     sess: d.workoutHistory.map(h => ({
       id: h.id, data: h.date, treino: h.workoutName, wid: h.workoutId, obs: h.notes || '',

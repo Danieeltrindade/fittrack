@@ -81,6 +81,7 @@ label{display:block;font-size:13px;font-weight:500;color:var(--mut);margin-botto
 
 /* Abas (modo de adicionar alimento) e biblioteca de alimentos */
 .seg.full{display:flex;width:100%}.seg.full button{flex:1;justify-content:center}
+.seg.full button{min-width:0;padding:8px 6px;text-align:center;line-height:1.2}@media(min-width:560px){.seg.full button{padding:8px 18px}}
 .lib .li p{overflow-wrap:anywhere}
 .search{margin-bottom:14px}
 .prev{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:2px 0 12px;font-size:14px}

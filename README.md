@@ -47,7 +47,7 @@ fittrack/
 │   ├── actions/               regras de dados (diet, workout, hydration, profile) — async
 │   ├── views/                 landing (login etc.), account, dashboard, workouts, diet, progress, hydration, settings
 │   └── components/            icons, modal, charts, datePicker, navigation, ui
-├── supabase/migrations/       SQL versionado: 1 tabelas · 2 RLS · 3 funções
+├── supabase/migrations/       SQL versionado: 1 tabelas · 2 RLS · 3 funções · 4 metas por objetivo, refeições salvas e fotos
 ├── scripts/check-secrets.js   procura segredos no projeto antes de publicar
 ├── tests/                     testes SQL (RLS) e e2e (navegador) — não fazem parte do site publicado
 └── .gitignore
@@ -64,6 +64,7 @@ Migrações em `supabase/migrations/` (rode **nesta ordem**):
 1. `20261009000001_schema.sql` — tabelas, restrições, índices, gatilho que cria o perfil após o cadastro.
 2. `20261009000002_rls.sql` — RLS em todas as tabelas, políticas e permissões.
 3. `20261009000003_functions.sql` — funções RPC (`get_my_data`, `apply_changeset`, `import_backup`, `mark_legacy_import`, `delete_all_my_data`).
+4. `20261102000004_goals_saved_meals_photos.sql` — **aditiva e idempotente** (pode rodar mais de uma vez; não apaga nem altera dados existentes): colunas de objetivo/peso desejado/déficit/metas por objetivo em `profiles`, tabelas `saved_meals` e `saved_meal_items` (com RLS), colunas de foto em `foods`, `meals`, `meal_items`, e o bucket **privado** `food-photos` (1 MB, JPEG) com políticas por pasta `<seu user_id>/`. Rode no *SQL Editor* **depois** das migrações 1–3. O bucket é criado pela própria migração; confira em *Storage* que `food-photos` existe e está marcado como privado. Se você já usa o app, **nada se perde**: as migrações 1–3 não mudam.
 
 **Tabelas:** `profiles`, `workouts`, `workout_exercises`, `workout_sessions`, `session_exercises`, `session_sets`, `foods`, `meals`, `meal_items`, `weight_history`, `hydration`, `legacy_imports`.
 
@@ -185,6 +186,8 @@ Em `tests/` (precisam de Postgres 16, `psql`, Node 18+ e Playwright/Chromium; n�
 cd tests
 ./run-pg.sh fittrack_test && PGHOST=127.0.0.1 PGPORT=54329 PGUSER=postgres \
   psql -q -t -A -d fittrack_test -f sql/10_rls_tests.sql     # RLS e funções, duas contas, num Postgres real
+psql -q -t -A -d fittrack_test -f sql/11_new_features.sql      # tabelas novas, Storage e isolamento (após o 10)
+./run-upgrade.sh                                              # migração 4 sobre um banco já com dados
 ./run-e2e.sh                                                  # navegador (Chromium) + servidor de teste ligado ao Postgres
 node ../scripts/check-secrets.js                              # varredura de segredos
 ```
@@ -206,6 +209,20 @@ node ../scripts/check-secrets.js                              # varredura de seg
 - Não testado em Safari/Firefox/aparelho físico nem contra um projeto Supabase real (ver seção 10).
 - Importações muito grandes podem esbarrar no limite de tamanho de requisição do Supabase (o app limita arquivos a 20 MB).
 
+
+## 12. Novidades: fotos, metas por objetivo, refeições salvas, exercícios
+
+- **Fotos** (alimentos da biblioteca, refeições do diário, refeições salvas): escolha da galeria/computador, prévia antes de salvar, trocar e remover. O app converte para JPEG (até 1280 px, ≤ 1 MB, sem metadados EXIF). **Conta pessoal:** a imagem vai para o Supabase Storage (bucket privado `food-photos`, pasta com o seu id) e o banco guarda só a referência; a foto é exibida por URL assinada. O envio acontece **antes** de gravar o registro: se falhar, nada é salvo; se gravar o registro falhar, o arquivo enviado é removido. Um arquivo só é apagado do Storage quando nenhum registro o usa mais. **Demonstração:** as fotos ficam no IndexedDB do navegador e nunca saem dele. Não há reconhecimento por IA — a foto é só um registro visual.
+- **Backup/restauração:** o JSON exportado leva as fotos embutidas (JPEG em base64, até 200 fotos de ≤ 400 KB cada) e as refeições salvas; ao importar, as fotos são reenviadas ao Storage da conta como arquivos novos. O backup não contém caminhos do Storage, `user_id` nem tokens.
+- **Metas por objetivo:** Emagrecimento / Manutenção / Ganho de massa, com peso desejado e déficit/superávit. As metas ativas **só mudam com a sua confirmação**; trocar de objetivo apenas oferece usar as metas guardadas daquele objetivo. Nos cartões: consumido / meta, restante ou “acima da meta”, percentual; as barras **não** são cortadas em 100% (o excesso aparece listrado). Ultrapassar não é automaticamente ruim: proteína acima da meta nunca vira alerta; calorias no emagrecimento viram aviso âmbar (nunca vermelho de erro).
+- **Refeições salvas** (aba *Refeições salvas* da Dieta, separada da biblioteca): nome, categoria, foto opcional, itens com quantidades, totais, favoritar, editar, duplicar, excluir, adicionar ao diário com um clique ou ajustando as quantidades. O diário recebe **cópias** dos itens: os totais do dia são sempre a soma dos itens (sem contagem dupla) e editar o modelo depois não altera dias já registrados.
+- **Exercícios:** *Editar exercício* (nome, grupo muscular, descrição, excluir). Renomear atualiza o treino e o histórico de sessões, preservando cargas, repetições e o vínculo.
+- **Visual:** cores fixas por nutriente (calorias verde, proteínas azul, gorduras amarelo, carboidratos roxo, água ciano, treinos verde), ícones padronizados, dashboard com resumo de macros, treino do dia, peso, resumo semanal e hidratação, temas claro/escuro e cores de destaque preservados.
+
+**Limitações das fotos:** formatos que o navegador não decodifica (ex.: HEIC em alguns navegadores) são recusados com aviso; se a remoção de um arquivo no Storage falhar, pode sobrar um arquivo órfão (não aparece no app e só ocupa espaço); a exibição por URL assinada exige conexão.
+
+**Testes novos:** `tests/sql/11_new_features.sql` (isolamento de Storage e tabelas novas), `tests/run-upgrade.sh` (migração 4 sobre dados existentes), `tests/e2e/t8_features.js` e `t9_demo_photos.js`. Para rodar só alguns: `tests/run-one.sh t8_features t9_demo_photos`. Lembrete: Storage real e supabase-js real **não** foram exercitados aqui (veja seção 10).
+
 ## Solução de problemas: "não foi possível alcançar o servidor" ao criar conta
 
 A mensagem aparece quando a requisição **nem chegou** ao Supabase. Na tela de login/cadastro, use **Diagnosticar conexão**: ele testa, sem enviar dados seus, a configuração, o endereço do projeto, a chave pública e as opções de autenticação, e diz qual passo falhou. Causas mais comuns:
@@ -223,4 +240,4 @@ Outros erros agora aparecem com a causa real (e "Detalhes técnicos"), em vez de
 - *Falha ao enviar e-mail* → o envio padrão do Supabase tem limite baixo por hora; configure um SMTP próprio ou aguarde.
 - *E-mail não confirmado* → clique no link recebido, ou (só para testes) desligue "Confirm email" em Authentication → Sign In / Providers → Email.
 
-Nenhuma alteração no banco é necessária para isso: as três migrações existentes continuam as mesmas e nada foi recriado.
+Nenhuma alteração no banco é necessária para isso: as migrações 1–3 continuam as mesmas e nada foi recriado.

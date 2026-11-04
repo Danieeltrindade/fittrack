@@ -14,7 +14,7 @@ const DietActions = {
       if (!m) { m = { id: uid(), date, mealType: type, foods: [], calories: 0, protein: 0 }; d.meals.push(m); }
       m.foods.push({ id: editId || uid(), ...f });
       retotal(m);
-      if (toLibrary) { const q = parseQty(f.quantity); d.foods.push({ id: uid(), name: f.name, portion: q.portion, unit: q.unit, calories: f.calories, protein: f.protein, carbs: f.carbs, fat: f.fat }); }
+      if (toLibrary) { const q = parseQty(f.quantity); d.foods.push({ id: uid(), name: f.name, portion: q.portion, unit: q.unit, calories: f.calories, protein: f.protein, carbs: f.carbs, fat: f.fat, ...(f.photo ? { photo: f.photo } : {}) }); }
       d.meals = d.meals.filter(x => x.foods.length);
     });
   },
@@ -27,8 +27,11 @@ const DietActions = {
   saveLibFood(item, id) {
     return Store.update(d => {
       const x = id && d.foods.find(f => f.id === id);
-      if (x) Object.assign(x, item); else d.foods.push({ id: uid(), ...item });
+      if (x) { Object.assign(x, item); if (!item.photo) delete x.photo; } else d.foods.push({ id: uid(), ...item });
     });
+  },
+  setMealPhoto(date, type, ref) {
+    return Store.update(d => { const m = d.meals.find(x => x.date === date && x.mealType === type); if (!m) throw new Error('refeição não encontrada'); if (ref) m.photo = ref; else delete m.photo; });
   },
   removeLibFood(id) { return Store.remove('foods', id); }
 };

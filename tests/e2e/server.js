@@ -14,8 +14,10 @@ function psql(sql) {
 }
 const lit = s => { const t = '$q' + rnd(4) + '$'; return t + s + t; };
 
+const FILES = new Map(), SIGNED = new Map();
+const raw = req => new Promise(r => { const c = []; req.on('data', d => c.push(d)); req.on('end', () => r(Buffer.concat(c))); });
 const S = { users: new Map(), sessions: new Map(), refresh: new Map(), codes: new Map(), tokens: new Map(), outbox: [], log: [],
-  flags: { requireConfirm: true, expireAll: false, refreshFails: false, rpcDelayMs: 0, rpcFailCode: null } };
+  flags: { requireConfirm: true, expireAll: false, refreshFails: false, rpcDelayMs: 0, rpcFailCode: null, storageFail: false } };
 const mk = (uid, email) => {
   const at = 'at_' + rnd(12), rt = 'rt_' + rnd(12);
   S.sessions.set(at, { uid, email }); S.refresh.set(rt, { uid, email });
@@ -78,6 +80,36 @@ http.createServer(async (req, res) => {
       if (out.__error) { const c = out.__error.code; return json(res, c === '42501' ? 403 : c === '28000' ? 401 : 400, out.__error); }
       return json(res, 200, out.data === undefined ? null : out.data);
     }
+    // ---- Storage de teste (bucket com limite de 1 MB e só JPEG, como a migração 4; permissões = RLS real de storage.objects)
+    if (p.startsWith('/__api/storage/')) {
+      const op = p.slice(15), s = S.sessions.get(bearer(req));
+      if (!s || S.flags.expireAll) return json(res, 401, { statusCode: '401', error: 'Unauthorized', message: 'invalid JWT' });
+      if (S.flags.storageFail) return json(res, 500, { statusCode: '500', error: 'Internal', message: 'forced storage failure' });
+      const bk = u.searchParams.get('bucket') || 'food-photos', st = (o) => JSON.parse(o);
+      const run = async (o, names) => JSON.parse(await psql(`select stub.st(${lit(s.uid)}::uuid, ${lit(o)}, ${lit(bk)}, ${lit(JSON.stringify(names))}::jsonb);`));
+      if (op === 'upload') {
+        const name = u.searchParams.get('path'), buf = await raw(req), ct = req.headers['content-type'] || '';
+        const bkt = JSON.parse(await psql(`select coalesce(row_to_json(b), '{}') from storage.buckets b where id = ${lit(bk)};`) || '{}');
+        if (!bkt.id) return json(res, 404, { statusCode: '404', error: 'Bucket not found', message: 'Bucket not found' });
+        if (buf.length > bkt.file_size_limit) return json(res, 413, { statusCode: '413', error: 'Payload too large', message: 'The object exceeded the maximum allowed size' });
+        if (!/^image\/jpeg/.test(ct)) return json(res, 415, { statusCode: '415', error: 'invalid_mime_type', message: 'mime type not supported' });
+        if (FILES.has(bk + '/' + name)) return json(res, 409, { statusCode: '409', error: 'Duplicate', message: 'The resource already exists' });
+        const out = await run('insert', [name]);
+        if (out.__error) return json(res, 403, { statusCode: '403', error: 'Unauthorized', message: 'new row violates row-level security policy' });
+        FILES.set(bk + '/' + name, buf); return json(res, 200, { Key: bk + '/' + name, path: name });
+      }
+      const b = await body(req);
+      if (op === 'sign') {
+        const out = await run('exists', [b.path]);
+        if (!out.data || !out.data.includes(b.path)) return json(res, 400, { statusCode: '404', error: 'not_found', message: 'Object not found' });
+        const t = rnd(12); SIGNED.set(t, bk + '/' + b.path); return json(res, 200, { signedUrl: '/__storage/' + t });
+      }
+      if (op === 'remove') { const out = await run('delete', b.paths || []); (out.data || []).forEach(n => FILES.delete(bk + '/' + n)); return json(res, 200, (out.data || []).map(name => ({ name }))); }
+      if (op === 'list') { const out = await run('list', [b.folder]); return json(res, 200, (out.data || []).map(name => ({ name: name.split('/').pop() }))); }
+      return json(res, 404, { message: 'unknown storage op' });
+    }
+    if (p.startsWith('/__storage/')) { const k = SIGNED.get(p.slice(11)), f = k && FILES.get(k); if (!f) { res.writeHead(404); return res.end('nf'); } res.writeHead(200, { 'content-type': 'image/jpeg', 'cache-control': 'no-store' }); return res.end(f); }
+    if (p === '/__test/files') return json(res, 200, [...FILES.keys()]);
     // ---- controle dos testes
     if (p === '/__test/outbox') return json(res, 200, S.outbox);
     if (p === '/__test/log') return json(res, 200, S.log);
@@ -85,8 +117,8 @@ http.createServer(async (req, res) => {
     if (p === '/__test/sql') { const b = await body(req); const t = await psql(`select coalesce(json_agg(q), '[]') from (${b.sql}) q;`); return json(res, 200, JSON.parse(t)); }
     if (p === '/__test/reset') {
       await psql('truncate auth.users cascade;');
-      S.users.clear(); S.sessions.clear(); S.refresh.clear(); S.codes.clear(); S.tokens.clear(); S.outbox.length = 0; S.log.length = 0;
-      Object.assign(S.flags, { requireConfirm: true, expireAll: false, refreshFails: false, rpcDelayMs: 0, rpcFailCode: null });
+      S.users.clear(); S.sessions.clear(); S.refresh.clear(); S.codes.clear(); S.tokens.clear(); S.outbox.length = 0; S.log.length = 0; FILES.clear(); SIGNED.clear();
+      Object.assign(S.flags, { requireConfirm: true, expireAll: false, refreshFails: false, rpcDelayMs: 0, rpcFailCode: null, storageFail: false });
       return json(res, 200, { ok: true });
     }
     // ---- estáticos

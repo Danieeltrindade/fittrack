@@ -79,6 +79,8 @@ const CloudRepo = {
     this.legacyHashes = Array.isArray(d.legacyImported) ? d.legacyImported : [];
     delete d.legacyImported;
     d.hydration = d.hydration || [];
+    d.savedMeals = d.savedMeals || [];
+    migrate(d);
     return d;
   },
   /* grava as diferenças entre dois estados. Só devolve se o servidor confirmou. */

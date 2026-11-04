@@ -1,0 +1,76 @@
+/* nutrients.css — identidade de cores por categoria (iguais em todo o app) e cartões de metas com excesso visível.
+   Calorias = verde · Proteína = azul · Gordura = amarelo · Carboidratos = roxo · Água = ciano · Treinos = verde. */
+:root,:root[data-theme=dark]{--c-cal:#4ADE80;--c-prot:#60A5FA;--c-fat:#FACC15;--c-carb:#A78BFA;--c-water:#22D3EE;--c-train:#4ADE80}
+:root[data-theme=light]{--c-cal:#16A34A;--c-prot:#2563EB;--c-fat:#B7791F;--c-carb:#7C3AED;--c-water:#0891B2;--c-train:#16A34A}
+.k-cal{--nc:var(--c-cal)}.k-prot{--nc:var(--c-prot)}.k-fat{--nc:var(--c-fat)}.k-carb{--nc:var(--c-carb)}.k-water{--nc:var(--c-water)}.k-train{--nc:var(--c-train)}
+.nic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;color:var(--nc);background:color-mix(in srgb,var(--nc) 15%,transparent)}
+.nic .ic{width:20px;height:20px}
+
+/* cartões das 4 metas do dia */
+.strip{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.strip .m,.strip .m:nth-child(odd){padding:16px 16px 14px;border:1px solid var(--line);border-radius:16px;background:var(--card);min-width:0}
+.strip .m:first-child{padding-left:16px}
+.nhd{display:flex;align-items:center;gap:12px}
+.nhd .cap{display:block}
+.strip .num{font-size:24px;margin-top:2px}
+.nbar{position:relative;height:8px;border-radius:9px;background:var(--track);margin:12px 0 8px;overflow:visible}
+.nbar .in,.nbar .ex{position:absolute;top:0;bottom:0;border-radius:9px}
+.nbar .in{left:0;background:var(--nc)}
+.nbar.has-over .in{border-radius:9px 0 0 9px}
+.nbar .ex{border-radius:0 9px 9px 0;background:repeating-linear-gradient(135deg,var(--nc) 0 4px,color-mix(in srgb,var(--nc) 38%,transparent) 4px 8px)}
+.nbar .ex.t-warn{background:repeating-linear-gradient(135deg,var(--warn) 0 4px,color-mix(in srgb,var(--warn) 38%,transparent) 4px 8px)}
+.nbar .tk{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink);border-radius:2px;opacity:.85}
+.nst{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:12.5px;line-height:1.35}
+.nst .pc{flex:none}
+.nst .st{color:var(--mut);font-weight:500}
+.nst .st.t-over{color:var(--nc);font-weight:600}
+.nst .st.t-warn{color:var(--warn);font-weight:600}
+.nst .st.t-near,.nst .st.t-ok.reached{color:var(--nc);font-weight:600}
+@media(min-width:900px){.strip{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:420px){.strip{gap:10px}.strip .m,.strip .m:nth-child(odd){padding:14px 12px 12px}.nic{width:32px;height:32px;border-radius:10px}.nic .ic{width:17px;height:17px}.strip .num{font-size:20px}}
+/* legenda de gráficos */
+.leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--mut);margin-top:8px}
+.leg span{display:inline-flex;align-items:center;gap:6px}.leg i{width:10px;height:10px;border-radius:3px;background:var(--nc,var(--accent))}.leg i.ln{height:2px;width:14px;border-radius:2px}
+/* metas por objetivo */
+.psets{display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px}
+.pset{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--s2)}
+.pset.on{border-color:var(--accent-border)}
+.pset .f{margin-bottom:0}
+@media(min-width:1000px){.psets{grid-template-columns:repeat(3,1fr)}}
+
+/* abas da Dieta */
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 0 18px;padding:4px;background:var(--hov);border-radius:14px;width:fit-content;max-width:100%}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:none;color:var(--mut);font-weight:600;padding:9px 16px;border-radius:10px;white-space:nowrap;min-height:40px}
+.tab:hover{color:var(--ink)}.tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+@media(max-width:600px){.tabs{width:100%}.tab{flex:1;padding-inline:10px;font-size:13.5px}}
+
+/* fotos */
+.ph{display:block;background:var(--s2);object-fit:cover;opacity:0;transition:opacity .2s}.ph.ld{opacity:1}.ph.er{opacity:1;background:var(--hov)}
+.ph.th{width:48px;height:48px;border-radius:12px}
+.ph.big{width:100%;max-height:260px;border-radius:14px}
+.ph.full{width:100%;max-height:70vh;object-fit:contain;border-radius:12px;background:#000}
+.ph.gr{width:100%;aspect-ratio:1;border-radius:14px}
+.phb{border:0;padding:0;background:none;border-radius:12px;flex:none;line-height:0}.phb:focus-visible{outline-offset:2px}
+.phb.sx .ph.th{width:34px;height:34px;border-radius:9px}
+.ph-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:120px;border:1.5px dashed var(--dash);border-radius:14px;color:var(--mut);font-size:13px}
+.phf .chips{display:flex;flex-wrap:wrap;gap:8px}
+.phd{font-size:13px;font-weight:600;color:var(--mut);text-transform:capitalize;margin:18px 0 10px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.pgrid figure{margin:0;min-width:0}.pgrid .phb.g{display:block;width:100%}
+.pgrid figcaption{display:flex;flex-direction:column;font-size:12.5px;line-height:1.3;margin-top:6px}.pgrid figcaption b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pgrid figcaption span{color:var(--mut)}
+.phv{text-align:center}
+.meal .sh{align-items:center}.meal .sh .phb{margin-left:auto}
+
+/* refeições salvas */
+.smc{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--s2);margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.smc.fav{border-color:var(--accent-border)}
+.smh{display:flex;align-items:center;gap:12px}
+.smt{flex:1;min-width:0}.smt p{overflow-wrap:anywhere}.smt small{color:var(--mut);display:block;font-size:13px}
+.sml{font-size:13px;line-height:1.5;color:var(--ink)}
+.smc .chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ib.on{color:var(--c-fat)}.ib.on .ic{fill:currentColor}
+.sai{align-items:center}.sai .amt{width:92px;text-align:right}
+.prev{margin-top:14px}
+.exd{margin-top:8px;font-size:13.5px}.exd summary{cursor:pointer;color:var(--mut);padding:4px 0}
+textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical}
