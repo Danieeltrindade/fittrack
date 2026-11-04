@@ -9,14 +9,11 @@ const barCard = (cap, P, goal, u, label, fmtAvg, nut) => `<section class="panel 
 function vProg() {
   const n = S.range, cut = n ? ago(n).getTime() : 0, c = S.cfg, G = goals(), inr = p => p.t >= cut;
   const PW = pts(S.pesos.map(p => ({ t: pd(p.data).getTime(), v: p.valor })), 'kg', 'Peso').filter(inr);
-  // progressão de carga: maior carga do dia (desempate por reps) para o exercício escolhido
-  const by = {};
-  S.hist.filter(h => h.ex === S.ex).forEach(h => { const b = by[h.data]; if (!b || h.carga > b.carga || (h.carga === b.carga && h.reps > b.reps)) by[h.data] = h; });
-  const EA = pts(Object.keys(by).sort().map(d => ({ t: pd(d).getTime(), v: by[d].carga, r: by[d].reps })), 'kg', 'Carga', p => 'Exercício: ' + esc(S.ex), p => 'Repetições: ' + p.r).filter(inr);
+  // evolução das cargas: ver components/loadChart.js (LoadChart.inner)
   const ex = exNames().filter(x => S.hist.some(h => h.ex === x && h.carga > 0)), dlt = PW.length > 1 ? PW[PW.length - 1].v - PW[0].v : 0;
   return `<div class="pg">${hdr('Progresso', 'Sua evolução, com os dados que você registrou.', `<div class="chips" role="group" aria-label="Período">${RG.map(([r, l]) => `<button class="chip ${r === n ? 'on' : ''}" data-act="range" data-v="${r}">${l}</button>`).join('')}</div>`)}
 <section class="panel"><div class="sec"><div><p class="cap">Peso</p><p class="num">${fx(PW.length ? PW[PW.length - 1].v : c.peso)}<small> kg</small></p></div><span class="tag ${dlt > 0 ? 'info' : ''}">${dlt >= 0 ? '+' : ''}${fx(dlt)} kg no período</span></div>${line(PW, 'kg', 'var(--accent)')}<div class="leg"><span><i class="ln" style="background:var(--accent)"></i>Peso (kg)</span>${S.cfg.target ? `<span>Peso desejado: ${fx(S.cfg.target)} kg</span>` : ''}</div></section>
-<section class="panel"><div class="sec"><div><p class="cap">Evolução das cargas</p><h2 style="margin-top:4px">${esc(S.ex || '—')}</h2></div><select style="max-width:240px" data-chg="ex" aria-label="Exercício">${ex.map(x => `<option ${x === S.ex ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>${line(EA, 'kg', 'var(--c-train)')}<div class="leg"><span><i class="ln" style="background:var(--c-train)"></i>Maior carga do dia (kg)</span></div></section>
+<section class="panel lc"><div class="sec"><div><p class="cap">Evolução das cargas</p><h2 style="margin-top:4px">${esc(S.ex || '—')}</h2></div><select style="max-width:240px" data-chg="ex" aria-label="Exercício">${ex.map(x => `<option ${x === S.ex ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div><div id="lcbox">${LoadChart.inner()}</div></section>
 <div class="two">${barCard('Calorias', series('k').filter(inr), G.cal, 'kcal', 'Calorias', fmt, 'cal')}${barCard('Proteína', series('p').filter(inr), G.prot, 'g', 'Proteína', v => fmt(v), 'prot')}</div>
 <div class="two">${barCard('Carboidratos', series('c').filter(inr), G.carb, 'g', 'Carboidratos', fmt, 'carb')}${barCard('Gordura', series('g').filter(inr), G.fat, 'g', 'Gordura', fmt, 'fat')}</div>
 ${barCard('Hidratação', waterSeries().filter(inr), waterGoal(DB), 'ml', 'Água', fmt, 'water')}${pesoCard()}</div>`;
