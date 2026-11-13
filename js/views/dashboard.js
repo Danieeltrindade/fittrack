@@ -9,9 +9,11 @@ function vInicio() {
   // água de hoje
   const wTot = dayWater(td), wGoal = waterGoal(DB), wPct = wGoal > 0 ? Math.floor(wTot * 100 / wGoal + 1e-9) : 0, wEv = evalNutrient('water', wTot, wGoal, goalTypeOf(DB));
 
+  const lbl = !tt ? '' : tt.off === 0 && !tt.done ? 'Treino de hoje' : 'Próximo treino' + (tt.off > 0 ? ' · ' + DIAS[(new Date().getDay() + tt.off) % 7] : '');
+  const fo = tt && tt.sched && tt.sched.id !== tt.t.id ? `<p class="sub" style="margin-top:2px">Pela agenda de hoje seria <b style="color:var(--ink)">${esc(wt(tt.sched.nome))}</b>, mas <b style="color:var(--ink)">${esc(wt(tt.t.nome))}</b> ainda não foi feito nesta semana.</p>` : '';
   const feat = tt
-    ? `<p class="cap">${tt.off === 0 ? 'Treino de hoje' : 'Próximo treino · ' + DIAS[(new Date().getDay() + tt.off) % 7]}</p><h2 class="big2">${esc(wt(tt.t.nome))}</h2><p class="sub">${wsum(tt.t)}</p><button class="btn lg" data-act="reg" data-v="${tt.t.id}">${ic('play')}Iniciar treino</button>`
-    : `<p class="cap">Treino de hoje</p><h2 class="big2">${S.treinos.length ? 'Nenhum treino agendado' : 'Nenhum treino cadastrado'}</h2><p class="sub">${S.treinos.length ? 'Defina os dias de cada treino em Treinos › Editar, ou comece por um dos treinos abaixo.' : 'Crie o seu primeiro treino na aba Treinos.'}</p><button class="btn s lg" data-act="go" data-v="treinos">Ver treinos</button>`;
+    ? `<p class="cap">${lbl}</p><h2 class="big2">${esc(wt(tt.t.nome))}</h2><p class="sub">${wsum(tt.t)}</p>${fo}<div class="facts"><button class="btn lg" data-act="reg" data-v="${tt.t.id}">${ic('play')}Iniciar treino</button><button class="btn s lg" data-act="swapday">${ic('swap')}Trocar</button></div><button class="lnk" data-act="freenew">+ Treino livre (montar na hora)</button>`
+    : `<p class="cap">Treino de hoje</p><h2 class="big2">${S.treinos.length ? 'Nenhum treino agendado' : 'Nenhum treino cadastrado'}</h2><p class="sub">${S.treinos.length ? 'Defina os dias de cada treino em Treinos › Editar, ou comece por um dos treinos abaixo.' : 'Crie o seu primeiro treino na aba Treinos.'}</p><div class="facts">${S.treinos.length ? `<button class="btn lg" data-act="swapday">${ic('swap')}Escolher treino</button>` : `<button class="btn s lg" data-act="go" data-v="treinos">Ver treinos</button>`}</div><button class="lnk" data-act="freenew">+ Treino livre (montar na hora)</button>`;
 
   return `<div class="pg"><header class="hd"><div><p class="cap">${dlong(new Date())}</p><h1 style="margin-top:8px">${hi}.</h1><p class="sub">Continue focado. Cada pequena ação aproxima você dos seus objetivos.</p></div></header>
 ${strip(T, G)}

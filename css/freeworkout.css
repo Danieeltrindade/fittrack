@@ -1,0 +1,14 @@
+/* Treino livre, troca do treino do dia e ajustes durante a sessão. */
+.facts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.feat .facts .btn{margin-top:18px}
+.lnk{background:none;border:0;color:var(--accent-ink,var(--accent));font-weight:600;padding:10px 0;min-height:44px;text-align:left}.lnk:hover{text-decoration:underline}
+.swo{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-top:8px;padding:12px;border:1.5px solid var(--line);border-radius:14px;background:var(--s2,var(--hov));color:var(--ink);font:inherit;min-height:56px}
+.swo b{display:block}.swo small{display:block;color:var(--mut)}.swo[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft)}
+.swo .rad{width:18px;height:18px;border-radius:50%;border:2px solid var(--mut);display:grid;place-items:center;flex:none}.swo[aria-pressed=true] .rad{border-color:var(--accent)}.swo[aria-pressed=true] .rad::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.swo .tag.wn{color:var(--warn,#FACC15);background:color-mix(in srgb,var(--warn,#FACC15) 14%,transparent)}.swo .tag.ac{background:var(--accent-soft);color:var(--accent-ink)}
+.exm{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.exm[hidden],.skt[hidden]{display:none}
+.eb[data-skip] .exbody{display:none}.eb[data-skip]>.row b{text-decoration:line-through;opacity:.6}
+.hint{font-size:13px;color:var(--mut);background:var(--hov);border-radius:12px;padding:10px 12px;margin-top:10px}
+.pickbox{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--hov)}
+.pklist{display:flex;flex-direction:column;max-height:220px;overflow-y:auto;margin-top:8px}
+.pklist .swo{margin-top:6px;justify-content:space-between;min-height:48px}
+.pickbox .row input{flex:1;min-width:0}

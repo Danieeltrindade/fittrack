@@ -11,7 +11,8 @@ const waterGoal = d => { const p = (d || DB).profile || {}; return p.waterGoalMl
 function dailySeries(dates, valueOf) { return [...new Set(dates)].sort().map(d => ({ t: pd(d).getTime(), v: valueOf(d) })).filter(p => p.v > 0); }
 const series = key => dailySeries(DB.meals.map(m => m.date), d => dayAll(d)[key]);       // key: k | p | c | g
 const waterSeries = () => dailySeries((DB.hydration || []).map(h => h.date), dayWater);
-const exNames = () => [...new Set(S.treinos.flatMap(t => t.ex.map(e => e.n)))];
+// exercícios dos treinos cadastrados + os que só aparecem no histórico (treinos livres)
+const exNames = () => [...new Set([...S.treinos.flatMap(t => t.ex.map(e => e.n)), ...DB.workoutHistory.flatMap(h => h.exercises.map(e => e.exerciseName))])];
 const tot = () => ({ k: sum(S.meals, 'k'), p: sum(S.meals, 'p'), c: sum(S.meals, 'c'), g: sum(S.meals, 'g') });
 
 /* metas: gordura e carboidratos ausentes são estimados a partir das calorias (e só aparecem como sugestão) */
@@ -28,10 +29,29 @@ function lastSets(name, before) {
   const d = r.map(h => h.data).sort().pop();
   return r.filter(h => h.data === d).sort((a, b) => a.serie - b.serie);
 }
-// Próximo treino agendado a partir de hoje (null se nenhum treino tem dia definido)
+/* Semana de treino: começa na segunda-feira. */
+const weekStartISO = () => { const d = new Date(); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return iso(d); };
+/* Treino sugerido: o que ainda NÃO foi feito nesta semana, na ordem: atrasados (o dia marcado já passou) → o de hoje → os próximos.
+   Treinos trocados ou livres entram na conta: quem treinou Pernas na segunda no lugar de Peito recebe o Peito como sugestão.
+   Retorna { t, off, done, sched } ou null se nenhum treino tem dia definido.
+   off = dias até o dia marcado (0 = hoje ou atrasado) · done = já treinou hoje · sched = treino marcado para hoje (se existir). */
 function todayT() {
+  const dow = new Date().getDay(), pos = d => (d + 6) % 7, today = pos(dow), td = iso(new Date()), ws = weekStartISO();
+  const sch = S.treinos.filter(t => t.dias.length);
+  if (!sch.length) return null;
+  const doneIds = new Set(DB.workoutHistory.filter(h => h.date >= ws && h.workoutId).map(h => h.workoutId));
+  const done = DB.workoutHistory.some(h => h.date === td), sched = sch.find(t => t.dias.includes(dow)) || null;
+  const pend = sch.filter(t => !doneIds.has(t.id)), early = t => Math.min(...t.dias.filter(d => pos(d) < today).map(pos));
+  const over = pend.filter(t => t.dias.some(d => pos(d) < today)).sort((a, b) => early(a) - early(b));
+  const tod = pend.filter(t => t.dias.includes(dow) && !over.includes(t));
+  const offOf = t => Math.min(...t.dias.map(d => (d - dow + 7) % 7 || 7));
+  const up = pend.filter(t => !over.includes(t) && !tod.includes(t)).sort((a, b) => offOf(a) - offOf(b));
+  const pick = over[0] || tod[0];
+  if (pick) return { t: pick, off: 0, done, sched };
+  if (up[0]) return { t: up[0], off: offOf(up[0]), done, sched };
+  // tudo já feito nesta semana: segue a agenda (próximo dia marcado, sem contar hoje se já treinou)
   const d = new Date().getDay();
-  for (let i = 0; i < 7; i++) { const t = S.treinos.find(t => t.dias.includes((d + i) % 7)); if (t) return { t, off: i }; }
+  for (let i = done ? 1 : 0; i < 8; i++) { const t = sch.find(t => t.dias.includes((d + i) % 7)); if (t) return { t, off: i % 7, done, sched }; }
   return null;
 }
 
