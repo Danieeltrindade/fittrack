@@ -37,7 +37,7 @@ const WeekChart = (() => {
   const lg = () => `<div class="wkl">${NU.map(n => `<span><i style="background:var(--c-${n[4]})"></i>${n[2]}</span>`).join('')}<span>Tracejado = meta do dia (100%)</span></div>`;
   function tiles(D, dls) {
     const m = NU.map(n => { const a = avg(D, n[0]), gl = D[0].G[n[1]]; return `<div class="k-${n[4]}"><b>${a === null ? '—' : fmt(a) + `<small> ${n[3]}</small>`}</b><span><i></i>média de ${n[2].toLowerCase()}${a === null || !(gl > 0) ? '' : ' · ' + Math.round(a / gl * 100) + '%'}</span></div>`; }).join('');
-    return `<div class="wkt"><div><b>${S.feitos}<small> / ${S.treinos.length}</small></b><span>treinos feitos</span></div><div><b>${dls}</b><span>peso em 7 dias</span></div>${m}</div>`;
+    return `<div class="wkt"><div><b>${S.feitos}<small> / ${Math.max(S.treinos.length, S.feitos)}</small></b><span>treinos feitos</span></div><div><b>${dls}</b><span>peso em 7 dias</span></div>${m}</div>`;
   }
   /* corpo do cartão: tiles + gráfico + legenda + detalhe do dia */
   function inner(dls) {
